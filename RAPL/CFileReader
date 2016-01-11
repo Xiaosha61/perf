@@ -1,0 +1,24 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+int main()
+{
+    FILE *fd;
+    long dev;
+    long offset;
+    long length;
+    char ch;
+    double ts=0.000000;
+    
+    fd = fopen("data.txt","r");
+    if(fd == NULL)
+    {
+        printf("Error!\n");
+        exit(0);
+    }
+    
+    fscanf(fd,"%ld,%ld,%ld,%c,%lf\n",&dev,&offset,&length,&ch,&ts);
+    printf("%ld,%ld,%ld,%c,%lf\n",dev,offset,length,ch,ts);
+    fclose(fd);
+    return 0;
+}
