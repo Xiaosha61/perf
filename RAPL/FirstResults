@@ -1,0 +1,58 @@
+
+###########  1. /bin/ls ########################
+sasa@xiaosha-VirtualBox:/sys/bus/event_source/devices/power/events$ sudo perf stat -e "power/energy-gpu/","power/energy-cores/","power/energy-ram/","power/energy-pkg/" /bin/ls
+energy-cores	    energy-gpu.scale  energy-pkg.unit
+energy-cores.scale  energy-gpu.unit   energy-ram
+energy-cores.unit   energy-pkg	      energy-ram.scale
+energy-gpu	    energy-pkg.scale  energy-ram.unit
+
+ Performance counter stats for '/bin/ls':
+
+              0.00 Joules power/energy-gpu/                                           
+              0.00 Joules power/energy-cores/                                         
+              0.00 Joules power/energy-ram/                                           
+              0.00 Joules power/energy-pkg/                                           
+
+       0.009761312 seconds time elapsed
+
+###########  2. benchmark 401.bzip2 ########################
+sasa@xiaosha-VirtualBox:~/SPEC$ sudo perf stat -e "power/energy-cores/","power/energy-gpu/","power/energy-pkg/","power/energy-ram/" '/home/sasa/SPEC/benchspec/CPU2006/401.bzip2/exe/bzip2_base.amd64-m64-gcc41-nn' '/home/sasa/SPEC/benchspec/CPU2006/401.bzip2/data/test/input/dryer.jpg' 
+spec_init
+Loading Input Data
+Duplicating 278475 bytes
+Duplicating 556950 bytes
+Duplicating 1113900 bytes
+Duplicating 2227800 bytes
+Duplicating 4455600 bytes
+Duplicating 8911200 bytes
+Duplicating 17822400 bytes
+Duplicating 31464064 bytes
+Input data 67108864 bytes in length
+Compressing Input Data, level 5
+Compressed data 44948575 bytes in length
+Uncompressing Data
+Uncompressed data 67108864 bytes in length
+Uncompressed data compared correctly
+Compressing Input Data, level 7
+Compressed data 36055496 bytes in length
+Uncompressing Data
+Uncompressed data 67108864 bytes in length
+Uncompressed data compared correctly
+Compressing Input Data, level 9
+Compressed data 29279017 bytes in length
+Uncompressing Data
+Uncompressed data 67108864 bytes in length
+Uncompressed data compared correctly
+Tested 64MB buffer: OK!
+
+ Performance counter stats for '/home/sasa/SPEC/benchspec/CPU2006/401.bzip2/exe/bzip2_base.amd64-m64-gcc41-nn /home/sasa/SPEC/benchspec/CPU2006/401.bzip2/data/test/input/dryer.jpg':
+
+              0.00 Joules power/energy-cores/                                         
+              0.00 Joules power/energy-gpu/                                           
+              0.00 Joules power/energy-pkg/                                           
+              0.00 Joules power/energy-ram/                                           
+
+     193.438341332 seconds time elapsed
+
+
+
