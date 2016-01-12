@@ -1,0 +1,100 @@
+###############     1.  ######################
+xiaosha@xiaosha-H97M-D3H:~/Desktop$ sudo ./rapl-read 
+
+Using perf_event to gather RAPL results
+For raw msr results use the -m option
+
+Found config=1
+Found scale=2.32831e-10
+Found units=Joules
+Found config=4
+Found scale=2.32831e-10
+Found units=Joules
+Found config=2
+Found scale=2.32831e-10
+Found units=Joules
+Found config=3
+Found scale=2.32831e-10
+Found units=Joules
+
+Sleeping 1 second
+
+107216896energy-cores Energy Consumed: 0.024963 Joules
+181665792energy-gpu Energy Consumed: 0.042297 Joules
+22303735808energy-pkg Energy Consumed: 5.192993 Joules
+4173856768energy-ram Energy Consumed: 0.971802 Joules
+
+###############     2 .  ######################
+
+xiaosha@xiaosha-H97M-D3H:~/Desktop$ sudo ./rapl-read -m
+
+Found Haswell CPU
+Checking core #0
+Power units = 0.125W
+CPU Energy units = 0.00006104J
+DRAM Energy units = 0.00006104J
+Time units = 0.00097656s
+
+Package thermal spec: 84.000W
+Package minimum power: 0.000W
+Package maximum power: 0.000W
+Package maximum time window: 0.000000s
+Package power limits are unlocked
+Package power limit #1: 3408.250W for 0.009766s (enabled, not_clamped)
+Package power limit #2: 4090.000W for 0.000000s (disabled, not_clamped)
+
+Package energy before: 15140.567139J
+PowerPlane0 (core) for core 0 energy before: 2372.119324J
+PowerPlane0 (core) for core 0 policy: 0
+PowerPlane1 (on-core GPU if avail) before: 197.688965J
+PowerPlane1 (on-core GPU if avail) 0 policy: 16
+DRAM energy before: 2224.324585J
+
+Sleeping 1 second
+
+Package energy after: 15145.822937  (5.255798J consumed)
+PowerPlane0 (core) for core 0 energy after: 2372.164246  (0.044922J consumed)
+PowerPlane1 (on-core GPU if avail) after: 197.750549  (0.061584J consumed)
+DRAM energy after: 2225.307373  (0.982788J consumed)
+
+Note: the energy measurements can overflow in 60s or so
+      so try to sample the counters more often than that.
+
+
+###############     3 .  ######################
+
+xiaosha@xiaosha-H97M-D3H:~/Desktop$ sudo perf stat -a -e "power/energy-cores/","power/energy-gpu/","power/energy-pkg/","power/energy-ram/" ./rapl-read
+
+Using perf_event to gather RAPL results
+For raw msr results use the -m option
+
+Found config=1
+Found scale=2.32831e-10
+Found units=Joules
+Found config=4
+Found scale=2.32831e-10
+Found units=Joules
+Found config=2
+Found scale=2.32831e-10
+Found units=Joules
+Found config=3
+Found scale=2.32831e-10
+Found units=Joules
+
+Sleeping 1 second
+
+226754560energy-cores Energy Consumed: 0.052795 Joules
+209453056energy-gpu Energy Consumed: 0.048767 Joules
+22616735744energy-pkg Energy Consumed: 5.265869 Joules
+4186963968energy-ram Energy Consumed: 0.974854 Joules
+
+ Performance counter stats for 'system wide':
+
+              0.05 Joules power/energy-cores/                                          [100.00%]
+              0.05 Joules power/energy-gpu/                                            [100.00%]
+              5.29 Joules power/energy-pkg/                                            [100.00%]
+              0.98 Joules power/energy-ram/                                            [100.00%]
+
+       1.001941480 seconds time elapsed
+
+
