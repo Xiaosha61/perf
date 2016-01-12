@@ -67,6 +67,8 @@
 #define TIME_UNIT_OFFSET	0x10
 #define TIME_UNIT_MASK		0xF000
 
+// 把/dev/cpu/core（0）/msr里面的数据写进fd文件中。
+// checking if msr exist and is accessable
 static int open_msr(int core) {
 
   char msr_filename[BUFSIZ];
@@ -91,6 +93,8 @@ static int open_msr(int core) {
   return fd;
 }
 
+
+//
 static long long read_msr(int fd, int which) {
 
   uint64_t data;
@@ -103,6 +107,7 @@ static long long read_msr(int fd, int which) {
   return (long long)data;
 }
 
+// 这是程序支持的几种model
 #define CPU_SANDYBRIDGE		42
 #define CPU_SANDYBRIDGE_EP	45
 #define CPU_IVYBRIDGE		58
@@ -112,7 +117,7 @@ static long long read_msr(int fd, int which) {
 #define CPU_BROADWELL		61
 
 
-
+// 对比/proc/cpuinfo里面cpu的信息，决定参数
 static int detect_cpu(void) {
 
 	FILE *fff;
@@ -125,35 +130,35 @@ static int detect_cpu(void) {
 	if (fff==NULL) return -1;
 
 	while(1) {
-		result=fgets(buffer,BUFSIZ,fff);
+		result=fgets(buffer,BUFSIZ,fff);// 把fff里面的东西写入到buffer，size限制为BUFSIZ，result是地址。
 		if (result==NULL) break;
 
-		if (!strncmp(result,"vendor_id",8)) {
-			sscanf(result,"%*s%*s%s",vendor);
+		if (!strncmp(result,"vendor_id",8)) { // 比较result和“vendor_id”的前8个字符，相同返回0。所以如果相同，就执行这个里面的代码。用来查看vendor_id里面的内容
+			sscanf(result,"%*s%*s%s",vendor); // 从result字符串里读出和“”里面格式相同的字符赋值给vendor
 
-			if (strncmp(vendor,"GenuineIntel",12)) {
+			if (strncmp(vendor,"GenuineIntel",12)) {//如果vendor是“GenuineItel”，这段就不会执行。能执行，说明不是Intel芯片。
 				printf("%s not an Intel chip\n",vendor);
 				return -1;
 			}
 		}
 
-		if (!strncmp(result,"cpu family",10)) {
+		if (!strncmp(result,"cpu family",10)) {// 再对比cpu family里面的内容
 			sscanf(result,"%*s%*s%*s%d",&family);
-			if (family!=6) {
+			if (family!=6) { // 不是6就不行（mine is 6 :）
 				printf("Wrong CPU family %d\n",family);
 				return -1;
 			}
 		}
 
 		if (!strncmp(result,"model",5)) {
-			sscanf(result,"%*s%*s%d",&model);
+			sscanf(result,"%*s%*s%d",&model); // model＝69
 		}
 
 	}
 
 	fclose(fff);
 
-	switch(model) {
+	switch(model) { // here is the problem. model = 69 not included inside.
 		case CPU_SANDYBRIDGE:
 			printf("Found Sandybridge CPU\n");
 			break;
@@ -184,6 +189,8 @@ static int detect_cpu(void) {
 }
 
 
+// 从msr counter中获取数据，计算
+// cpu不同，计算过程和能够得到的数据会有不同
 /*******************************/
 /* MSR code                    */
 /*******************************/
@@ -208,10 +215,10 @@ static int rapl_msr(int core) {
 
 	printf("Checking core #%d\n",core);
 
-	fd=open_msr(core);
+	fd=open_msr(core);// 读取msr里面的数据到fd里
 
 	/* Calculate the units used */
-	result=read_msr(fd,MSR_RAPL_POWER_UNIT);
+	result=read_msr(fd,MSR_RAPL_POWER_UNIT); // 读取msr里面的MSR_RAPL_POWER_UNIT的数据，赋值给result，供以下计算。
 
 	power_units=pow(0.5,(double)(result&0xf));
 	cpu_energy_units=pow(0.5,(double)((result>>8)&0x1f));
@@ -262,7 +269,7 @@ static int rapl_msr(int core) {
 
 	/* result=read_msr(fd,MSR_RAPL_POWER_UNIT); */
 
-	result=read_msr(fd,MSR_PKG_ENERGY_STATUS);
+	result=read_msr(fd,MSR_PKG_ENERGY_STATUS);// 读取msr里面的MSR_PKG_ENERGY_STATUS的数据，赋值给result，供以下计算。
 	package_before=(double)result*cpu_energy_units;
 	printf("Package energy before: %.6fJ\n",package_before);
 
@@ -331,6 +338,7 @@ static int rapl_msr(int core) {
 		"(%.6fJ consumed)\n",
 		core,pp0_after,pp0_after-pp0_before);
 
+
 	/* not available on SandyBridge-EP */
 	if ((cpu_model==CPU_SANDYBRIDGE) || (cpu_model==CPU_IVYBRIDGE) ||
 		(cpu_model==CPU_HASWELL)) {
@@ -360,8 +368,10 @@ static int rapl_msr(int core) {
 	return 0;
 }
 
+/* 用于获取 rapl-perf 函数计算时公式里面需要从syscall获得的数。 */
 static int perf_event_open(struct perf_event_attr *hw_event_uptr,
                     pid_t pid, int cpu, int group_fd, unsigned long flags) {
+    // fd[i]=perf_event_open(&attr,-1,core,-1,0);
 
         return syscall(__NR_perf_event_open,hw_event_uptr, pid, cpu,
                         group_fd, flags);
@@ -369,12 +379,19 @@ static int perf_event_open(struct perf_event_attr *hw_event_uptr,
 
 #define NUM_RAPL_DOMAINS	4
 
+/* 要建立4个必要的RAPL counter，用于统计我们需要知道的energy consumption */
+/* 将要存储在这4个counter里面的数据并不是直接observe到的，而是通过observe到的counter经过一系列计算得出的，这里是他们的名字。*/
 char rapl_domain_names[NUM_RAPL_DOMAINS][30]= {
 	"energy-cores",
 	"energy-gpu",
 	"energy-pkg",
 	"energy-ram",
 };
+
+/* rapl_perf(core): 就是用来计算这4个counter里应存的值的函数。 */
+/* rapl_perf(core): 给上面说的四个rapl counter分别在events文件夹里面建立4组文件 */
+/* rapl_perf(core): 每组都有（energy-cores），（energy-cores.unit）,(energy-cores.scale)并打印结果 */
+/* rapl_perf(core): 对应含义：counter名字，计量单位Joules，？？？scale */
 
 static int rapl_perf(int core) {
 
@@ -386,7 +403,7 @@ static int rapl_perf(int core) {
 	int fd[NUM_RAPL_DOMAINS];
 	double scale[NUM_RAPL_DOMAINS];
 	struct perf_event_attr attr;
-	long long value;
+	long long value; //从msr拿到的raw data
 	int i;
 
 	fff=fopen("/sys/bus/event_source/devices/power/type","r");
@@ -395,23 +412,26 @@ static int rapl_perf(int core) {
 		printf("Falling back to raw msr support\n");
 		return -1;
 	}
-	fscanf(fff,"%d",&type);
+	fscanf(fff,"%d",&type);// fff是要打开的文件，这个指令可以把文件里面的数赋给type变量。
 	fclose(fff);
 
 	printf("Using perf_event to gather RAPL results\n");
 	printf("For raw msr results use the -m option\n\n");
 
+    // 4 个rapl counter, 一个一个来建立文件组
 	for(i=0;i<NUM_RAPL_DOMAINS;i++) {
 
 		fd[i]=-1;
 
 		sprintf(filename,"/sys/bus/event_source/devices/power/events/%s",
 			rapl_domain_names[i]);
-
+        // 这句话是说把后面“” 里的东西赋值给filename，让filename变量指向那个文件。
+        // 所以rapl-cores,rapl-gpu这四个文件本来就是存在的
+        
 		fff=fopen(filename,"r");
 
 		if (fff!=NULL) {
-			fscanf(fff,"event=%x",&config);
+			fscanf(fff,"event=%x",&config); // 把从rapl-cores那个文件里面的event＝0X01赋值给config，现在congfig＝1
 			printf("Found config=%d\n",config);
 			fclose(fff);
 		} else {
@@ -420,6 +440,8 @@ static int rapl_perf(int core) {
 
 		sprintf(filename,"/sys/bus/event_source/devices/power/events/%s.scale",
 			rapl_domain_names[i]);
+        // 所以rapl-cores,rapl-gpu这四组文件本来就都是存在的
+
 		fff=fopen(filename,"r");
 
 		if (fff!=NULL) {
@@ -441,7 +463,7 @@ static int rapl_perf(int core) {
 		attr.type=type;
 		attr.config=config;
 
-		fd[i]=perf_event_open(&attr,-1,core,-1,0);
+		fd[i]=perf_event_open(&attr,-1,core,-1,0); // syscall to get the value
 		if (fd[i]<0) {
 			if (errno==EACCES) {
 				printf("Permission denied; run as root or adjust paranoid value\n");
@@ -459,12 +481,13 @@ static int rapl_perf(int core) {
 
 	for(i=0;i<NUM_RAPL_DOMAINS;i++) {
 		if (fd[i]!=-1) {
-			read(fd[i],&value,8);
+			read(fd[i],&value,8); // 把通过调用fd[i]=perf_event_open(&attr,-1,core,-1,0)获得的syscall结果的前8位赋值给value变量。供之后计算使用。
 			close(fd[i]);
 
 			printf("%s Energy Consumed: %lf %s\n",
 				rapl_domain_names[i],
 				(double)value*scale[i],units);
+                // 这里4次loop得到的value当然是不一样的，因为fd[i]i的不同将调用到不同的register/counter里面的数据。
 		}
 	}
 
