@@ -1,0 +1,17 @@
+#/bin/sh
+#
+# This program will display several outputs of benchmark, hopefully!
+
+echo " ----------------------------"
+echo "|1st benchmark is running... |"
+echo " ----------------------------"
+sudo perf stat -e instructions,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses,LLC-prefetches,LLC-prefetch-misses,cpu-cycles,page-faults ls > CmdOutput.txt 2> CtOutput.txt
+echo " ----------------------------"
+echo "|2nd benchmark is running... |"
+echo " ----------------------------"
+sudo perf stat -e instructions,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses,LLC-prefetches,LLC-prefetch-misses,cpu-cycles,page-faults pwd >> CmdOutput.txt 2>> CtOutput.txt
+echo " ----------------------------"
+echo "|3rd benchmark is running... |"
+echo " ----------------------------"
+sudo perf stat -e instructions,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses,LLC-prefetches,LLC-prefetch-misses,cpu-cycles,page-faults cd >> CmdOutput.txt 2>> CtOutput.txt
+
