@@ -1,0 +1,106 @@
+ 1. $sudo perf stat -a -e $events $app , while no other processes, 
+ Performance counter stats for 'system wide':
+
+       34779204807        instructions:u            #    2.21  insns per cycle         [49.91%]
+           6127259        LLC-loads                                                    [50.00%]
+             76470        LLC-load-misses           #    1.25% of all LL-cache hits    [50.09%]
+           1033948        LLC-stores                                                   [25.09%]
+             15827        LLC-store-misses                                             [25.01%]
+         111765259        LLC-prefetches                                               [24.92%]
+              6829        LLC-prefetch-misses                                          [24.91%]
+       15760951806        cpu-cycles                [37.37%]
+              1192        page-faults                                                  [100.00%]
+                22        cpu-migrations                                               [100.00%]
+               409        cs                                                          
+             62.66 Joules power/energy-cores/                                          [100.00%]
+              0.00 Joules power/energy-gpu/                                            [100.00%]
+            110.18 Joules power/energy-pkg/                                            [100.00%]
+              6.24 Joules power/energy-ram/                                           
+
+       4.463372727 seconds time elapsed
+ 
+2. $sudo perf stat -a -e $events $app , while running a infinite loop process, 
+
+ Performance counter stats for 'system wide':
+
+       44282143858        instructions:u            #    0.93  insns per cycle         [49.88%]
+          50505356        LLC-loads                                                    [49.94%]
+            161918        LLC-load-misses           #    0.32% of all LL-cache hits    [50.03%]
+          34319606        LLC-stores                                                   [25.06%]
+            315759        LLC-store-misses                                             [25.06%]
+         174278719        LLC-prefetches                                               [25.01%]
+            495122        LLC-prefetch-misses                                          [24.91%]
+       47476424940        cpu-cycles                [37.35%]
+              1055        page-faults                                                  [100.00%]
+               111        cpu-migrations                                               [100.00%]
+           5561769        cs                                                          
+            178.46 Joules power/energy-cores/                                          [100.00%]
+              0.00 Joules power/energy-gpu/                                            [100.00%]
+            223.49 Joules power/energy-pkg/                                            [100.00%]
+              6.11 Joules power/energy-ram/                                           
+
+       4.341399853 seconds time elapsed
+
+3. $sudo perf stat -C 3 -e $events taskset 8 $app  ,while no other processes
+ 
+ Performance counter stats for 'CPU(s) 3':
+
+       34894183541        instructions:u            #    2.22  insns per cycle         [49.88%]
+           4967957        LLC-loads                                                    [49.94%]
+              9679        LLC-load-misses           #    0.19% of all LL-cache hits    [50.03%]
+            912533        LLC-stores                                                   [25.06%]
+             18743        LLC-store-misses                                             [25.06%]
+         109686530        LLC-prefetches                                               [25.00%]
+            158252        LLC-prefetch-misses                                          [24.91%]
+       15708459293        cpu-cycles                [37.35%]
+              1127        page-faults                                                  [100.00%]
+                 1        cpu-migrations                                               [100.00%]
+                30        cs                                                          
+             68.67 Joules power/energy-cores/                                          [100.00%]
+              0.06 Joules power/energy-gpu/                                            [100.00%]
+            116.09 Joules power/energy-pkg/                                            [100.00%]
+              6.27 Joules power/energy-ram/                                           
+
+       4.469130469 seconds time elapsed
+
+4. $sudo perf stat -C 3 -e $events taskset 8 $app  ,while running a infinite loop worldwide
+ Performance counter stats for 'CPU(s) 3':
+
+       34363063059        instructions:u            #    2.14  insns per cycle         [49.92%]
+          15637471        LLC-loads                                                    [50.01%]
+            144605        LLC-load-misses           #    0.92% of all LL-cache hits    [50.10%]
+           3632207        LLC-stores                                                   [25.07%]
+             66972        LLC-store-misses                                             [24.98%]
+         110622163        LLC-prefetches                                               [24.92%]
+            259521        LLC-prefetch-misses                                          [24.92%]
+       16054927383        cpu-cycles                [37.38%]
+              1040        page-faults                                                  [100.00%]
+                 5        cpu-migrations                                               [100.00%]
+               163        cs                                                          
+            152.64 Joules power/energy-cores/                                          [100.00%]
+              0.06 Joules power/energy-gpu/                                            [100.00%]
+            199.03 Joules power/energy-pkg/                                            [100.00%]
+              6.30 Joules power/energy-ram/                                           
+
+       4.462608591 seconds time elapsed
+
+5. $sudo perf stat -C 3 -e $events taskset 8 $app  ,while running a infinite loop on the same core
+ Performance counter stats for 'CPU(s) 3':
+
+       33042333303        instructions:u            #    0.67  insns per cycle         [49.98%]
+          65972889        LLC-loads                                                    [49.98%]
+            288035        LLC-load-misses           #    0.44% of all LL-cache hits    [49.99%]
+          43915421        LLC-stores                                                   [25.01%]
+            264197        LLC-store-misses                                             [25.01%]
+         194221692        LLC-prefetches                                               [25.01%]
+            514689        LLC-prefetch-misses                                          [25.00%]
+       49135790604        cpu-cycles                [37.47%]
+              1256        page-faults                                                  [100.00%]
+                 7        cpu-migrations                                               [100.00%]
+          11219359        cs                                                          
+            347.92 Joules power/energy-cores/                                          [100.00%]
+              0.00 Joules power/energy-gpu/                                            [100.00%]
+            501.28 Joules power/energy-pkg/                                            [100.00%]
+             19.20 Joules power/energy-ram/                                           
+
+      13.657997063 seconds time elapsed
