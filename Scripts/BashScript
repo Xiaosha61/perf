@@ -19,4 +19,4 @@ else
 sudo perf stat -e $events ${app[$i]} >> CmdOutput.txt 2>> CtOutput.txt
 fi
 done
-
+ 
