@@ -1,3 +1,5 @@
+#- run several different apps sequentially
+#- output results into separate files in a directory.
 #!/bin/bash
 
 mkdir CounterOutputs CmdOutputs
