@@ -1,3 +1,5 @@
+#- run an app several times sequentially
+#- output results into separate files in a directory.
 mkdir CounterOutputs CmdOutputs
 
 events="instructions:u,LLC-loads,LLC-load-misses,LLC-stores,LLC-store-misses,LLC-prefetches,LLC-prefetch-misses,cpu-cycles,page-faults,cpu-migrations,cs,power/energy-cores/,power/energy-gpu/,power/energy-pkg/,power/energy-ram/"
